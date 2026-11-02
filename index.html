@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d6cb5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Komunikacja Miejska Limanowa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one-column phone app — kierunek, przystanek, wielkie odliczanie, lista kolejnych kursów, stopka z informacją */
+:root{
+  --bg:#eef2f7; --surface:#ffffff; --ink:#122a4c; --muted:#5a6b84; --line:#d5dde8;
+  --accent:#1d6cb5; --accent-ink:#ffffff; --sat:#fbefb0; --sat-ink:#6b5500; --soon:#c2410c;
+  --display:"Barlow Condensed","Roboto Condensed","Arial Narrow",sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1628; --surface:#13223a; --ink:#e6edf7; --muted:#93a3bb; --line:#24365a;
+  --accent:#5aa8ec; --accent-ink:#06121f; --sat:#4a3f12; --sat-ink:#f6e38a; --soon:#fb923c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1628; --surface:#13223a; --ink:#e6edf7; --muted:#93a3bb; --line:#24365a;
+  --accent:#5aa8ec; --accent-ink:#06121f; --sat:#4a3f12; --sat-ink:#f6e38a; --soon:#fb923c; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 28px}
+.app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:1.6rem;letter-spacing:.01em;margin:0;line-height:1.05;text-wrap:balance;min-width:0}
+.clock{font-family:var(--display);font-size:1.4rem;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:0 0 6px}
+.dir{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.dir button{font:inherit;font-weight:700;font-size:.92rem;border:0;border-radius:9px;padding:10px 8px;background:transparent;color:var(--ink);cursor:pointer;line-height:1.2}
+.dir button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.dir button small{display:block;font-weight:400;font-size:.75rem;opacity:.8}
+select{width:100%;font:inherit;font-weight:700;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 40px 12px 14px;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 20px) 52%,calc(100% - 14px) 52%;background-size:6px 6px;background-repeat:no-repeat}
+button:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 20px 18px;display:flex;flex-direction:column;gap:6px}
+.big{display:flex;align-items:baseline;gap:8px;font-family:var(--display);font-variant-numeric:tabular-nums}
+.big .n{font-size:6rem;font-weight:700;line-height:.9;letter-spacing:-.01em}
+.big .u{font-size:1.8rem;font-weight:600;color:var(--muted)}
+.hero.soon .big .n{color:var(--soon)}
+.sec{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.95rem}
+.meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.chip{font-size:.8rem;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.chip.sat{background:var(--sat);color:var(--sat-ink);border-color:transparent}
+.hero .when{font-family:var(--display);font-size:1.5rem;font-weight:600}
+
+ol{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+li{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid var(--line)}
+li:first-child{border-top:0}
+li .t{font-family:var(--display);font-size:1.45rem;font-weight:600;font-variant-numeric:tabular-nums;min-width:3.2em}
+li .d{color:var(--muted);font-size:.85rem;min-width:0}
+li .in{font-variant-numeric:tabular-nums;font-weight:700;font-size:.95rem;text-align:right}
+.empty{padding:16px;color:var(--muted)}
+footer{font-size:.8rem;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+footer b{color:var(--ink)}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Komunikacja Miejska Limanowa</h1>
+    <div class="clock" id="clock">--:--</div>
+  </header>
+
+  <section>
+    <p class="label">Kierunek</p>
+    <div class="dir" role="group" aria-label="Kierunek">
+      <button id="d0" type="button" aria-pressed="true">→ ul. Bednarzy<small>z ul. Z. Augusta</small></button>
+      <button id="d1" type="button" aria-pressed="false">→ ul. Z. Augusta<small>z ul. Bednarzy</small></button>
+    </div>
+  </section>
+
+  <section>
+    <label class="label" for="stop">Twój przystanek</label>
+    <select id="stop"></select>
+  </section>
+
+  <section class="hero" id="hero" aria-live="polite">
+    <p class="label" style="margin:0">Najbliższy autobus za</p>
+    <div class="big"><span class="n" id="mins">–</span><span class="u" id="unit">min</span></div>
+    <div class="sec" id="secs"></div>
+    <div class="meta">
+      <span class="when" id="when"></span>
+      <span class="chip" id="course"></span>
+      <span class="chip sat" id="satchip" hidden>kursuje też w soboty</span>
+    </div>
+  </section>
+
+  <section>
+    <p class="label">Kolejne odjazdy</p>
+    <ol id="list"></ol>
+  </section>
+
+  <footer>
+    <span>Rozkład komunikacji miejskiej Limanowa, ważny od 1 września 2026. Kursy w dni robocze, część także w soboty. W niedziele i święta autobusy nie kursują.</span>
+    <span>Informacja: Dworzec Autobusowy, ul. Targowa, tel. <b>533 073 131</b></span>
+  </footer>
+</div>
+
+<script>
+// ---- Dane z rozkładu ----
+// Każdy przystanek: [nazwa, minuty od startu kursu]
+const ROUTES = [
+  {
+    name: "→ ul. Bednarzy",
+    stops: [
+      ["ul. Z. Augusta „Baza PKS”",0],["„PŁYWALNIA”",1],["ul. Z. Augusta „SZKOŁA”",3],["„RONDO”",4],["„SĄD”",6],
+      ["„RYNEK”",9],["„DWORZEC GŁÓWNY”",12],["ul. Kopernika",13],["„PKP”",15],["„SŁONECZNA”",16],
+      ["„SZPITAL”",17],["„EKONOM”",19],["„SOWLINY”",20],["„WILLOWA”",22],["„LIMATHERM”",24],
+      ["„WOLIMEX”",25],["ul. Łososińska „CMENTARZ”",26],["ul. Łososińska „REMIZA”",27],["ul. Reymonta „SZKOŁA”",29],["ul. Bednarzy „TOP CEZAR”",30]
+    ],
+    // [godzina startu, czy jedzie też w soboty]
+    trips: [["05:30",0],["06:50",0],["07:30",0],["08:10",0],["08:50",1],["09:30",0],["10:10",0],["10:50",0],["11:30",1],["12:10",0],["12:50",0],
+            ["13:30",0],["14:10",1],["15:00",0],["15:40",0],["16:20",0],["17:00",0],["17:40",0],["18:20",0],["19:00",0],["19:40",0],["21:10",0]]
+  },
+  {
+    name: "→ ul. Z. Augusta",
+    stops: [
+      ["ul. Bednarzy „TOP CEZAR”",0],["ul. Reymonta „SZKOŁA”",1],["ul. Łososińska „REMIZA”",2],["ul. Łososińska „CMENTARZ”",3],["ul. Tarnowska I",5],
+      ["„LIMATHERM”",7],["Witosa „APTEKA”",8],["Sowliny „OSIEDLE”",10],["„SZPITAL”",11],["„SŁONECZNA”",13],
+      ["„PKP”",15],["ul. Kopernika",17],["„DWORZEC GŁÓWNY”",18],["„RYNEK”",22],["„SĄD”",24],
+      ["ul. Z. Augusta „SZKOŁA”",27],["ul. Z. Augusta „Baza PKS”",30]
+    ],
+    trips: [["06:15",0],["06:55",0],["07:35",1],["08:15",0],["08:55",0],["09:35",0],["10:15",1],["10:55",0],["11:35",0],["12:15",0],["12:55",1],
+            ["13:35",0],["14:15",0],["15:05",0],["15:45",0],["16:25",0],["17:05",0],["17:45",0],["18:25",0],["19:05",0],["20:25",0],["22:05",0]]
+  }
+];
+
+// ---- Święta w Polsce ----
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),
+  h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+  mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da);}
+const holCache={};
+function holidays(y){
+  if(holCache[y])return holCache[y];
+  const s=new Set(["1-1","6-1","1-5","3-5","15-8","1-11","11-11","24-12","25-12","26-12"]);
+  const e=easter(y);
+  for(const off of [0,1,49,60]){const d=new Date(e);d.setDate(d.getDate()+off);s.add(d.getDate()+"-"+(d.getMonth()+1));}
+  return holCache[y]=s;
+}
+// 'W' dzień roboczy, 'S' sobota, null brak kursów
+function dayType(d){
+  if(holidays(d.getFullYear()).has(d.getDate()+"-"+(d.getMonth()+1)))return null;
+  const w=d.getDay(); if(w===0)return null; if(w===6)return "S"; return "W";
+}
+
+// ---- Logika ----
+const toMin=t=>{const[h,m]=t.split(":").map(Number);return h*60+m};
+const pad=n=>String(n).padStart(2,"0");
+const fmt=m=>pad(Math.floor(m/60)%24)+":"+pad(m%60);
+const DAYS=["niedziela","poniedziałek","wtorek","środa","czwartek","piątek","sobota"];
+
+function upcoming(route, stopIdx, now, count){
+  const off=route.stops[stopIdx][1], out=[];
+  const base=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  for(let i=0;i<10 && out.length<count;i++){
+    const day=new Date(base); day.setDate(base.getDate()+i);
+    const type=dayType(day); if(!type)continue;
+    for(const [t,sat] of route.trips){
+      if(type==="S" && !sat)continue;
+      const m=toMin(t)+off;
+      const at=new Date(day); at.setHours(0,m,0,0);
+      if(at>now){out.push({at,dayOffset:i,day,start:t,sat:!!sat}); if(out.length>=count)break;}
+    }
+  }
+  return out;
+}
+function dayLabel(x){return x.dayOffset===0?"dziś":x.dayOffset===1?"jutro":DAYS[x.day.getDay()];}
+
+// ---- Stan ----
+let state={dir:0,stop:[0,0]};
+try{const s=JSON.parse(localStorage.getItem("busLimanowa")||"null"); if(s&&Array.isArray(s.stop))state=s;}catch(e){}
+const save=()=>{try{localStorage.setItem("busLimanowa",JSON.stringify(state))}catch(e){}};
+
+const $=id=>document.getElementById(id);
+function fillStops(){
+  const r=ROUTES[state.dir], sel=$("stop");
+  sel.innerHTML=r.stops.slice(0,-1).map((s,i)=>`<option value="${i}">${s[0]}</option>`).join("");
+  if(state.stop[state.dir]>=r.stops.length-1)state.stop[state.dir]=0;
+  sel.value=state.stop[state.dir];
+  $("d0").setAttribute("aria-pressed",state.dir===0); $("d1").setAttribute("aria-pressed",state.dir===1);
+}
+function render(){
+  const now=new Date(), r=ROUTES[state.dir];
+  $("clock").textContent=pad(now.getHours())+":"+pad(now.getMinutes());
+  const list=upcoming(r,state.stop[state.dir],now,7);
+  if(!list.length){$("mins").textContent="–";$("list").innerHTML='<li class="empty">Brak kursów w najbliższych dniach.</li>';return;}
+  const n=list[0], diff=n.at-now, totalMin=Math.floor(diff/60000);
+  const hero=$("hero");
+  if(totalMin<60){
+    $("mins").textContent=totalMin<1?"<1":totalMin; $("unit").textContent="min";
+    $("secs").textContent=totalMin<1?"Autobus właśnie podjeżdża":`dokładnie ${totalMin} min ${pad(Math.floor(diff/1000)%60)} s`;
+  }else{
+    const h=Math.floor(totalMin/60), m=totalMin%60;
+    $("mins").textContent=h; $("unit").textContent=`h ${m} min`;
+    $("secs").textContent="";
+  }
+  hero.classList.toggle("soon",totalMin<5);
+  $("when").textContent=`${dayLabel(n)}, ${fmt(n.at.getHours()*60+n.at.getMinutes())}`;
+  $("course").textContent=`kurs ${n.start}`;
+  $("satchip").hidden=!n.sat;
+  $("list").innerHTML=list.slice(1).map(x=>{
+    const mm=Math.round((x.at-now)/60000), h=Math.floor(mm/60);
+    const inTxt=mm<60?`za ${mm} min`:`za ${h} h ${mm%60} min`;
+    return `<li><span class="t">${fmt(x.at.getHours()*60+x.at.getMinutes())}</span><span class="d">${dayLabel(x)} · kurs ${x.start}${x.sat?' <span class="chip sat">sob.</span>':''}</span><span class="in">${inTxt}</span></li>`;
+  }).join("");
+}
+$("d0").onclick=()=>{state.dir=0;fillStops();save();render()};
+$("d1").onclick=()=>{state.dir=1;fillStops();save();render()};
+$("stop").onchange=e=>{state.stop[state.dir]=+e.target.value;save();render()};
+fillStops(); render(); setInterval(render,1000);
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
